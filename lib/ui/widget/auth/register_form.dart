@@ -1,6 +1,10 @@
 // lib/ui/widgets/auth/register_form.dart
 import 'package:flutter/material.dart';
 import '../../../utils/size_config.dart';
+import '../../../utils/helpers/validators.dart'; // NEW
+import '../../../utils/helpers/formatters.dart'; // NEW
+import '../../../utils/themes/text_styles.dart'; // NEW
+import '../../../constants/app_constants.dart'; // NEW
 
 class RegisterForm extends StatefulWidget {
   final bool isLoading;
@@ -44,10 +48,18 @@ class _RegisterFormState extends State<RegisterForm> {
   void _submitForm() {
     if (_formKey.currentState!.validate() && _agreeToTerms) {
       widget.onRegister(
-        _emailController.text,
+        _emailController.text.trim(),
         _passwordController.text,
-        _firstNameController.text,
-        _lastNameController.text,
+        _firstNameController.text.trim(),
+        _lastNameController.text.trim(),
+      );
+    } else if (!_agreeToTerms) {
+      // Show error if terms not agreed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please agree to the Terms of Service and Privacy Policy'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -60,26 +72,23 @@ class _RegisterFormState extends State<RegisterForm> {
         key: _formKey,
         child: Column(
           children: [
-            // Welcome Text
+            // Welcome Text - UPDATED with TextStyles
             Text(
               'Create Account',
-              style: TextStyle(
-                fontSize: SizeConfig.getProportionateScreenWidth(28),
-                fontWeight: FontWeight.bold,
+              style: TextStyles.displayMedium.copyWith(
                 color: Colors.black87,
               ),
             ),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(8)),
             Text(
               'Sign up to get started',
-              style: TextStyle(
-                fontSize: SizeConfig.getProportionateScreenWidth(16),
+              style: TextStyles.bodyMedium.copyWith(
                 color: Colors.grey[600],
               ),
             ),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(40)),
 
-            // Error Message
+            // Error Message - UPDATED with better styling
             if (widget.error != null)
               Container(
                 width: double.infinity,
@@ -87,13 +96,21 @@ class _RegisterFormState extends State<RegisterForm> {
                 decoration: BoxDecoration(
                   color: Colors.red[50],
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[100]!),
                 ),
-                child: Text(
-                  widget.error!,
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: SizeConfig.getProportionateScreenWidth(14),
-                  ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: SizeConfig.getProportionateScreenWidth(16)),
+                    SizedBox(width: SizeConfig.getProportionateScreenWidth(8)),
+                    Expanded(
+                      child: Text(
+                        widget.error!,
+                        style: TextStyles.bodyMedium.copyWith(
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             if (widget.error != null) SizedBox(height: SizeConfig.getProportionateScreenHeight(16)),
@@ -102,59 +119,65 @@ class _RegisterFormState extends State<RegisterForm> {
             Row(
               children: [
                 Expanded(
-                  child: _buildFirstNameField(),
+                  child: _buildFirstNameField(), // UPDATED
                 ),
                 SizedBox(width: SizeConfig.getProportionateScreenWidth(12)),
                 Expanded(
-                  child: _buildLastNameField(),
+                  child: _buildLastNameField(), // UPDATED
                 ),
               ],
             ),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(20)),
 
-            // Email Field
+            // Email Field - UPDATED
             _buildEmailField(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(20)),
 
-            // Password Field
+            // Password Field - UPDATED
             _buildPasswordField(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(20)),
 
-            // Confirm Password Field
+            // Confirm Password Field - UPDATED
             _buildConfirmPasswordField(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(20)),
 
-            // Terms and Conditions
+            // Terms and Conditions - UPDATED
             _buildTermsCheckbox(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(30)),
 
-            // Register Button
+            // Register Button - UPDATED
             _buildRegisterButton(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(30)),
 
-            // Divider
+            // Divider - UPDATED
             _buildDivider(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(30)),
 
-            // Social Login Buttons
+            // Social Login Buttons - UPDATED
             _buildSocialLoginButtons(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(30)),
 
-            // Login Link
+            // Login Link - UPDATED
             _buildLoginLink(),
           ],
         ),
       ),
     );
   }
+
   Widget _buildFirstNameField() {
     return TextFormField(
       controller: _firstNameController,
+      textInputAction: TextInputAction.next,
+      autocorrect: false,
       decoration: InputDecoration(
         labelText: 'First Name',
-        labelStyle: TextStyle(
+        hintText: 'John',
+        labelStyle: TextStyles.bodyLarge.copyWith(
           color: Colors.grey[600],
-          fontSize: SizeConfig.getProportionateScreenWidth(16),
+        ),
+        hintStyle: TextStyles.bodyMedium.copyWith(
+          color: Colors.grey[400],
         ),
         prefixIcon: Icon(
           Icons.person_outline,
@@ -175,26 +198,23 @@ class _RegisterFormState extends State<RegisterForm> {
         filled: true,
         fillColor: Colors.grey[50],
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your first name';
-        }
-        if (value.length < 2) {
-          return 'First name must be at least 2 characters';
-        }
-        return null;
-      },
+      validator: (value) => Validators.required(value, 'First name'), // NEW
     );
   }
 
   Widget _buildLastNameField() {
     return TextFormField(
       controller: _lastNameController,
+      textInputAction: TextInputAction.next,
+      autocorrect: false,
       decoration: InputDecoration(
         labelText: 'Last Name',
-        labelStyle: TextStyle(
+        hintText: 'Doe',
+        labelStyle: TextStyles.bodyLarge.copyWith(
           color: Colors.grey[600],
-          fontSize: SizeConfig.getProportionateScreenWidth(16),
+        ),
+        hintStyle: TextStyles.bodyMedium.copyWith(
+          color: Colors.grey[400],
         ),
         prefixIcon: Icon(
           Icons.person_outline,
@@ -215,15 +235,7 @@ class _RegisterFormState extends State<RegisterForm> {
         filled: true,
         fillColor: Colors.grey[50],
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your last name';
-        }
-        if (value.length < 2) {
-          return 'Last name must be at least 2 characters';
-        }
-        return null;
-      },
+      validator: (value) => Validators.required(value, 'Last name'), // NEW
     );
   }
 
@@ -231,11 +243,17 @@ class _RegisterFormState extends State<RegisterForm> {
     return TextFormField(
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
+      textInputAction: TextInputAction.next,
+      autocorrect: false,
+      inputFormatters: [LowerCaseTextFormatter()], // NEW
       decoration: InputDecoration(
         labelText: 'Email Address',
-        labelStyle: TextStyle(
+        hintText: 'your@email.com',
+        labelStyle: TextStyles.bodyLarge.copyWith(
           color: Colors.grey[600],
-          fontSize: SizeConfig.getProportionateScreenWidth(16),
+        ),
+        hintStyle: TextStyles.bodyMedium.copyWith(
+          color: Colors.grey[400],
         ),
         prefixIcon: Icon(
           Icons.email_outlined,
@@ -256,15 +274,7 @@ class _RegisterFormState extends State<RegisterForm> {
         filled: true,
         fillColor: Colors.grey[50],
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your email';
-        }
-        if (!value.contains('@')) {
-          return 'Please enter a valid email';
-        }
-        return null;
-      },
+      validator: Validators.email, // NEW
     );
   }
 
@@ -272,11 +282,21 @@ class _RegisterFormState extends State<RegisterForm> {
     return TextFormField(
       controller: _passwordController,
       obscureText: _obscurePassword,
+      textInputAction: TextInputAction.next,
+      onChanged: (_) {
+        // Trigger confirm password validation when password changes
+        if (_confirmPasswordController.text.isNotEmpty) {
+          _formKey.currentState?.validate();
+        }
+      },
       decoration: InputDecoration(
         labelText: 'Password',
-        labelStyle: TextStyle(
+        hintText: 'Enter your password',
+        labelStyle: TextStyles.bodyLarge.copyWith(
           color: Colors.grey[600],
-          fontSize: SizeConfig.getProportionateScreenWidth(16),
+        ),
+        hintStyle: TextStyles.bodyMedium.copyWith(
+          color: Colors.grey[400],
         ),
         prefixIcon: Icon(
           Icons.lock_outline,
@@ -312,8 +332,8 @@ class _RegisterFormState extends State<RegisterForm> {
         if (value == null || value.isEmpty) {
           return 'Please enter your password';
         }
-        if (value.length < 6) {
-          return 'Password must be at least 6 characters';
+        if (value.length < AppConstants.minPasswordLength) { // NEW
+          return 'Password must be at least ${AppConstants.minPasswordLength} characters';
         }
         if (!value.contains(RegExp(r'[A-Z]'))) {
           return 'Password must contain at least one uppercase letter';
@@ -330,11 +350,16 @@ class _RegisterFormState extends State<RegisterForm> {
     return TextFormField(
       controller: _confirmPasswordController,
       obscureText: _obscureConfirmPassword,
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => _submitForm(), // NEW: Submit on enter
       decoration: InputDecoration(
         labelText: 'Confirm Password',
-        labelStyle: TextStyle(
+        hintText: 'Confirm your password',
+        labelStyle: TextStyles.bodyLarge.copyWith(
           color: Colors.grey[600],
-          fontSize: SizeConfig.getProportionateScreenWidth(16),
+        ),
+        hintStyle: TextStyles.bodyMedium.copyWith(
+          color: Colors.grey[400],
         ),
         prefixIcon: Icon(
           Icons.lock_outline,
@@ -366,116 +391,132 @@ class _RegisterFormState extends State<RegisterForm> {
         filled: true,
         fillColor: Colors.grey[50],
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please confirm your password';
-        }
-        if (value != _passwordController.text) {
-          return 'Passwords do not match';
-        }
-        return null;
-      },
+      validator: (value) => Validators.confirmPassword(value, _passwordController.text), // NEW
     );
   }
 
   Widget _buildTermsCheckbox() {
-    return Row(
-      children: [
-        Checkbox(
-          value: _agreeToTerms,
-          onChanged: (value) {
-            setState(() {
-              _agreeToTerms = value ?? false;
-            });
-          },
-          activeColor: Colors.blue,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
+    return Container(
+      padding: EdgeInsets.symmetric(
+        vertical: SizeConfig.getProportionateScreenHeight(8),
+      ),
+      decoration: BoxDecoration(
+        color: !_agreeToTerms && _formKey.currentState?.validate() != null 
+            ? Colors.red[50] 
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Checkbox(
+            value: _agreeToTerms,
+            onChanged: (value) {
+              setState(() {
+                _agreeToTerms = value ?? false;
+              });
+            },
+            activeColor: Colors.blue,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
           ),
-        ),
-        Expanded(
-          child: Wrap(
-            children: [
-              Text(
-                'I agree to the ',
-                style: TextStyle(
-                  fontSize: SizeConfig.getProportionateScreenWidth(14),
-                  color: Colors.grey[600],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  print('Terms of Service pressed');
-                },
-                child: Text(
-                  'Terms of Service',
-                  style: TextStyle(
-                    fontSize: SizeConfig.getProportionateScreenWidth(14),
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(top: SizeConfig.getProportionateScreenHeight(8)),
+              child: Wrap(
+                children: [
+                  Text(
+                    'I agree to the ',
+                    style: TextStyles.bodyMedium.copyWith(
+                      color: Colors.grey[600],
+                    ),
                   ),
-                ),
-              ),
-              Text(
-                ' and ',
-                style: TextStyle(
-                  fontSize: SizeConfig.getProportionateScreenWidth(14),
-                  color: Colors.grey[600],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  print('Privacy Policy pressed');
-                },
-                child: Text(
-                  'Privacy Policy',
-                  style: TextStyle(
-                    fontSize: SizeConfig.getProportionateScreenWidth(14),
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: () {
+                      print('Terms of Service pressed');
+                      // TODO: Navigate to Terms of Service
+                    },
+                    child: Text(
+                      'Terms of Service',
+                      style: TextStyles.bodyMedium.copyWith(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
+                  Text(
+                    ' and ',
+                    style: TextStyles.bodyMedium.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      print('Privacy Policy pressed');
+                      // TODO: Navigate to Privacy Policy
+                    },
+                    child: Text(
+                      'Privacy Policy',
+                      style: TextStyles.bodyMedium.copyWith(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
- Widget _buildRegisterButton() {
-    return Container(
+  Widget _buildRegisterButton() {
+    return SizedBox(
       width: double.infinity,
       height: SizeConfig.getProportionateScreenHeight(56),
       child: ElevatedButton(
         onPressed: (widget.isLoading || !_agreeToTerms) ? null : _submitForm,
         style: ElevatedButton.styleFrom(
           backgroundColor: _agreeToTerms ? Colors.blue : Colors.grey[400],
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 2,
         ),
         child: widget.isLoading
-            ? Container(
-                width: SizeConfig.getProportionateScreenWidth(20),
-                height: SizeConfig.getProportionateScreenWidth(20),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: SizeConfig.getProportionateScreenWidth(20),
+                    height: SizeConfig.getProportionateScreenWidth(20),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.getProportionateScreenWidth(12)),
+                  Text(
+                    'Creating Account...',
+                    style: TextStyles.labelLarge.copyWith(color: Colors.white),
+                  ),
+                ],
               )
             : Text(
                 'Create Account',
-                style: TextStyle(
-                  fontSize: SizeConfig.getProportionateScreenWidth(16),
+                style: TextStyles.labelLarge.copyWith(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
       ),
     );
   }
-  
+
   Widget _buildDivider() {
     return Row(
       children: [
@@ -491,9 +532,8 @@ class _RegisterFormState extends State<RegisterForm> {
           ),
           child: Text(
             'Or sign up with',
-            style: TextStyle(
+            style: TextStyles.bodyMedium.copyWith(
               color: Colors.grey[500],
-              fontSize: SizeConfig.getProportionateScreenWidth(14),
             ),
           ),
         ),
@@ -511,92 +551,55 @@ class _RegisterFormState extends State<RegisterForm> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Google
-        Container(
-          width: SizeConfig.getProportionateScreenWidth(60),
-          height: SizeConfig.getProportionateScreenWidth(60),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey[300]!),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.g_mobiledata,
-              size: SizeConfig.getProportionateScreenWidth(30),
-              color: Colors.red,
-            ),
-            onPressed: () {
-              print('Google sign up pressed');
-            },
-          ),
+        _buildSocialButton(
+          icon: Icons.g_mobiledata,
+          color: Colors.red,
+          onPressed: () => _handleSocialSignUp('google'),
         ),
         SizedBox(width: SizeConfig.getProportionateScreenWidth(20)),
-        
-        // Facebook
-        Container(
-          width: SizeConfig.getProportionateScreenWidth(60),
-          height: SizeConfig.getProportionateScreenWidth(60),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey[300]!),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.facebook,
-              size: SizeConfig.getProportionateScreenWidth(30),
-              color: Colors.blue[800],
-            ),
-            onPressed: () {
-              print('Facebook sign up pressed');
-            },
-          ),
+        _buildSocialButton(
+          icon: Icons.facebook,
+          color: Colors.blue[800]!,
+          onPressed: () => _handleSocialSignUp('facebook'),
         ),
         SizedBox(width: SizeConfig.getProportionateScreenWidth(20)),
-        
-        // Apple
-        Container(
-          width: SizeConfig.getProportionateScreenWidth(60),
-          height: SizeConfig.getProportionateScreenWidth(60),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey[300]!),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.apple,
-              size: SizeConfig.getProportionateScreenWidth(30),
-              color: Colors.black,
-            ),
-            onPressed: () {
-              print('Apple sign up pressed');
-            },
-          ),
+        _buildSocialButton(
+          icon: Icons.apple,
+          color: Colors.black,
+          onPressed: () => _handleSocialSignUp('apple'),
         ),
       ],
+    );
+  }
+
+  Widget _buildSocialButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: SizeConfig.getProportionateScreenWidth(60),
+      height: SizeConfig.getProportionateScreenWidth(60),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.grey[300]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(
+          icon,
+          size: SizeConfig.getProportionateScreenWidth(30),
+          color: color,
+        ),
+        onPressed: onPressed,
+      ),
     );
   }
 
@@ -606,23 +609,33 @@ class _RegisterFormState extends State<RegisterForm> {
       children: [
         Text(
           "Already have an account? ",
-          style: TextStyle(
+          style: TextStyles.bodyMedium.copyWith(
             color: Colors.grey[600],
-            fontSize: SizeConfig.getProportionateScreenWidth(14),
           ),
         ),
         GestureDetector(
           onTap: widget.onLoginPressed,
           child: Text(
             'Sign In',
-            style: TextStyle(
+            style: TextStyles.bodyMedium.copyWith(
               color: Colors.blue,
-              fontSize: SizeConfig.getProportionateScreenWidth(14),
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
       ],
+    );
+  }
+
+  // NEW: Social sign-up handler
+  void _handleSocialSignUp(String provider) {
+    print('$provider sign up pressed');
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$provider sign up coming soon!'),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 }

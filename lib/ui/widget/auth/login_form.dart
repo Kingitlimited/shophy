@@ -1,6 +1,10 @@
 // lib/ui/widgets/auth/login_form.dart
 import 'package:flutter/material.dart';
 import '../../../utils/size_config.dart';
+import '../../../utils/helpers/validators.dart'; // NEW
+import '../../../utils/helpers/formatters.dart'; // NEW
+import '../../../utils/themes/text_styles.dart'; // NEW
+import '../../../constants/app_constants.dart'; // NEW
 
 class LoginForm extends StatefulWidget {
   final bool isLoading;
@@ -37,7 +41,7 @@ class _LoginFormState extends State<LoginForm> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      widget.onLogin(_emailController.text, _passwordController.text);
+      widget.onLogin(_emailController.text.trim(), _passwordController.text);
     }
   }
 
@@ -49,26 +53,23 @@ class _LoginFormState extends State<LoginForm> {
         key: _formKey,
         child: Column(
           children: [
-            // Welcome Text
+            // Welcome Text - UPDATED with TextStyles
             Text(
               'Welcome Back',
-              style: TextStyle(
-                fontSize: SizeConfig.getProportionateScreenWidth(28),
-                fontWeight: FontWeight.bold,
+              style: TextStyles.displayMedium.copyWith(
                 color: Colors.black87,
               ),
             ),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(8)),
             Text(
               'Sign in to your account',
-              style: TextStyle(
-                fontSize: SizeConfig.getProportionateScreenWidth(16),
+              style: TextStyles.bodyMedium.copyWith(
                 color: Colors.grey[600],
               ),
             ),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(40)),
 
-            // Error Message
+            // Error Message - UPDATED with better styling
             if (widget.error != null)
               Container(
                 width: double.infinity,
@@ -76,42 +77,50 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: BoxDecoration(
                   color: Colors.red[50],
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[100]!),
                 ),
-                child: Text(
-                  widget.error!,
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: SizeConfig.getProportionateScreenWidth(14),
-                  ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: SizeConfig.getProportionateScreenWidth(16)),
+                    SizedBox(width: SizeConfig.getProportionateScreenWidth(8)),
+                    Expanded(
+                      child: Text(
+                        widget.error!,
+                        style: TextStyles.bodyMedium.copyWith(
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             if (widget.error != null) SizedBox(height: SizeConfig.getProportionateScreenHeight(16)),
 
-            // Email Field
+            // Email Field - UPDATED with Validators and Formatters
             _buildEmailField(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(20)),
 
-            // Password Field
+            // Password Field - UPDATED with Validators
             _buildPasswordField(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(10)),
 
-            // Forgot Password
+            // Forgot Password - UPDATED with TextStyles
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: widget.onForgotPasswordPressed,
                 child: Text(
                   'Forgot Password?',
-                  style: TextStyle(
+                  style: TextStyles.bodyMedium.copyWith(
                     color: Colors.blue,
-                    fontSize: SizeConfig.getProportionateScreenWidth(14),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(30)),
 
-            // Login Button
+            // Login Button - UPDATED with better loading state
             _buildLoginButton(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(30)),
 
@@ -119,11 +128,11 @@ class _LoginFormState extends State<LoginForm> {
             _buildDivider(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(30)),
 
-            // Social Login Buttons
+            // Social Login Buttons - UPDATED with AssetConstants
             _buildSocialLoginButtons(),
             SizedBox(height: SizeConfig.getProportionateScreenHeight(30)),
 
-            // Register Link
+            // Register Link - UPDATED with TextStyles
             _buildRegisterLink(),
           ],
         ),
@@ -135,11 +144,17 @@ class _LoginFormState extends State<LoginForm> {
     return TextFormField(
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
+      textInputAction: TextInputAction.next,
+      autocorrect: false,
+      inputFormatters: [LowerCaseTextFormatter()], // NEW: Auto-format to lowercase
       decoration: InputDecoration(
         labelText: 'Email Address',
-        labelStyle: TextStyle(
+        hintText: 'your@email.com',
+        labelStyle: TextStyles.bodyLarge.copyWith(
           color: Colors.grey[600],
-          fontSize: SizeConfig.getProportionateScreenWidth(16),
+        ),
+        hintStyle: TextStyles.bodyMedium.copyWith(
+          color: Colors.grey[400],
         ),
         prefixIcon: Icon(
           Icons.email_outlined,
@@ -160,15 +175,7 @@ class _LoginFormState extends State<LoginForm> {
         filled: true,
         fillColor: Colors.grey[50],
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your email';
-        }
-        if (!value.contains('@')) {
-          return 'Please enter a valid email';
-        }
-        return null;
-      },
+      validator: Validators.email, // NEW: Using our Validator utility
     );
   }
 
@@ -176,11 +183,16 @@ class _LoginFormState extends State<LoginForm> {
     return TextFormField(
       controller: _passwordController,
       obscureText: _obscurePassword,
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => _submitForm(), // NEW: Submit on enter
       decoration: InputDecoration(
         labelText: 'Password',
-        labelStyle: TextStyle(
+        hintText: 'Enter your password',
+        labelStyle: TextStyles.bodyLarge.copyWith(
           color: Colors.grey[600],
-          fontSize: SizeConfig.getProportionateScreenWidth(16),
+        ),
+        hintStyle: TextStyles.bodyMedium.copyWith(
+          color: Colors.grey[400],
         ),
         prefixIcon: Icon(
           Icons.lock_outline,
@@ -212,44 +224,47 @@ class _LoginFormState extends State<LoginForm> {
         filled: true,
         fillColor: Colors.grey[50],
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your password';
-        }
-        if (value.length < 6) {
-          return 'Password must be at least 6 characters';
-        }
-        return null;
-      },
+      validator: (value) => Validators.password(value), // NEW: Using our Validator utility
     );
   }
 
   Widget _buildLoginButton() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: SizeConfig.getProportionateScreenHeight(56),
       child: ElevatedButton(
         onPressed: widget.isLoading ? null : _submitForm,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 2,
         ),
         child: widget.isLoading
-            ? Container(
-                width: SizeConfig.getProportionateScreenWidth(20),
-                height: SizeConfig.getProportionateScreenWidth(20),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: SizeConfig.getProportionateScreenWidth(20),
+                    height: SizeConfig.getProportionateScreenWidth(20),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.getProportionateScreenWidth(12)),
+                  Text(
+                    'Signing In...',
+                    style: TextStyles.labelLarge.copyWith(color: Colors.white),
+                  ),
+                ],
               )
             : Text(
                 'Sign In',
-                style: TextStyle(
-                  fontSize: SizeConfig.getProportionateScreenWidth(16),
+                style: TextStyles.labelLarge.copyWith(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -272,9 +287,8 @@ class _LoginFormState extends State<LoginForm> {
           ),
           child: Text(
             'Or continue with',
-            style: TextStyle(
+            style: TextStyles.bodyMedium.copyWith(
               color: Colors.grey[500],
-              fontSize: SizeConfig.getProportionateScreenWidth(14),
             ),
           ),
         ),
@@ -293,91 +307,59 @@ class _LoginFormState extends State<LoginForm> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Google
-        Container(
-          width: SizeConfig.getProportionateScreenWidth(60),
-          height: SizeConfig.getProportionateScreenWidth(60),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey[300]!),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.g_mobiledata,
-              size: SizeConfig.getProportionateScreenWidth(30),
-              color: Colors.red,
-            ),
-            onPressed: () {
-              print('Google login pressed');
-            },
-          ),
+        _buildSocialButton(
+          icon: Icons.g_mobiledata,
+          color: Colors.red,
+          onPressed: () => _handleSocialLogin('google'),
         ),
         SizedBox(width: SizeConfig.getProportionateScreenWidth(20)),
         
         // Facebook
-        Container(
-          width: SizeConfig.getProportionateScreenWidth(60),
-          height: SizeConfig.getProportionateScreenWidth(60),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey[300]!),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.facebook,
-              size: SizeConfig.getProportionateScreenWidth(30),
-              color: Colors.blue[800],
-            ),
-            onPressed: () {
-              print('Facebook login pressed');
-            },
-          ),
+        _buildSocialButton(
+          icon: Icons.facebook,
+          color: Colors.blue[800]!,
+          onPressed: () => _handleSocialLogin('facebook'),
         ),
         SizedBox(width: SizeConfig.getProportionateScreenWidth(20)),
         
         // Apple
-        Container(
-          width: SizeConfig.getProportionateScreenWidth(60),
-          height: SizeConfig.getProportionateScreenWidth(60),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey[300]!),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.apple,
-              size: SizeConfig.getProportionateScreenWidth(30),
-              color: Colors.black,
-            ),
-            onPressed: () {
-              print('Apple login pressed');
-            },
-          ),
+        _buildSocialButton(
+          icon: Icons.apple,
+          color: Colors.black,
+          onPressed: () => _handleSocialLogin('apple'),
         ),
       ],
+    );
+  }
+
+  Widget _buildSocialButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: SizeConfig.getProportionateScreenWidth(60),
+      height: SizeConfig.getProportionateScreenWidth(60),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.grey[300]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(
+          icon,
+          size: SizeConfig.getProportionateScreenWidth(30),
+          color: color,
+        ),
+        onPressed: onPressed,
+      ),
     );
   }
 
@@ -387,23 +369,35 @@ class _LoginFormState extends State<LoginForm> {
       children: [
         Text(
           "Don't have an account? ",
-          style: TextStyle(
+          style: TextStyles.bodyMedium.copyWith(
             color: Colors.grey[600],
-            fontSize: SizeConfig.getProportionateScreenWidth(14),
           ),
         ),
         GestureDetector(
           onTap: widget.onRegisterPressed,
           child: Text(
             'Sign Up',
-            style: TextStyle(
+            style: TextStyles.bodyMedium.copyWith(
               color: Colors.blue,
-              fontSize: SizeConfig.getProportionateScreenWidth(14),
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
       ],
+    );
+  }
+
+  // NEW: Social login handler
+  void _handleSocialLogin(String provider) {
+    // You can integrate actual social login logic here
+    print('$provider login pressed');
+    
+    // Show a temporary snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$provider login coming soon!'),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 }
