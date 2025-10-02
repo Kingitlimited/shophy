@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shophy/providers/auth_provider.dart';
-import 'package:shophy/ui/widgets/auth/register_form.dart'; // Fixed import path
+import 'package:shophy/ui/widget/auth/register_form.dart'; // Fixed import path
 import 'package:shophy/utils/size_config.dart';
 import 'package:shophy/utils/helpers/navigation.dart'; // NEW
 import 'package:shophy/utils/themes/text_styles.dart'; // NEW
