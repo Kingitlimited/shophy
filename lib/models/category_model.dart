@@ -9,6 +9,7 @@ class Category {
   final int position;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int productCount; // ADD: Count of products in this category
 
   Category({
     required this.id,
@@ -20,6 +21,7 @@ class Category {
     this.position = 0,
     this.createdAt,
     this.updatedAt,
+    this.productCount = 0, // ADD
   });
 
   factory Category.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class Category {
       position: json['position'] ?? 0,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      productCount: json['productCount'] ?? 0, // ADD
     );
   }
 
@@ -47,6 +50,7 @@ class Category {
       'position': position,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'productCount': productCount, // ADD
     };
   }
 
@@ -60,6 +64,7 @@ class Category {
     int? position,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? productCount, // ADD
   }) {
     return Category(
       id: id ?? this.id,
@@ -71,6 +76,7 @@ class Category {
       position: position ?? this.position,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      productCount: productCount ?? this.productCount, // ADD
     );
   }
 }

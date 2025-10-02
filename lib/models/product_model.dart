@@ -12,6 +12,8 @@ class Product {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final bool available;
+  final List<String> categoryIds; // ADD: Reference to multiple categories
+  final String? primaryCategoryId;
 
   Product({
     required this.id,
@@ -26,6 +28,8 @@ class Product {
     this.createdAt,
     this.updatedAt,
     this.available = true,
+    this.categoryIds = const [], // ADD: Default empty list
+    this.primaryCategoryId,
   });
 
   ProductVariant get defaultVariant => variants.first;
@@ -40,7 +44,10 @@ class Product {
   int get reviewCount {
     return variants.expand((v) => v.reviews).length;
   }
-
+// ADD: Helper method to check if product belongs to a category
+  bool belongsToCategory(String categoryId) {
+    return categoryIds.contains(categoryId) || primaryCategoryId == categoryId;
+  }
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id']?.toString() ?? '',
@@ -55,6 +62,8 @@ class Product {
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       available: json['available'] ?? true,
+      categoryIds: List<String>.from(json['categoryIds'] ?? []), // ADD
+      primaryCategoryId: json['primaryCategoryId']?.toString(),
     );
   }
 
@@ -72,8 +81,44 @@ class Product {
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'available': available,
+      'categoryIds': categoryIds, // ADD
+      'primaryCategoryId': primaryCategoryId,
     };
   }
+   Product copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? handle,
+    List<ProductVariant>? variants,
+    List<ProductImage>? images,
+    List<String>? tags,
+    String? productType,
+    String? vendor,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? available,
+    List<String>? categoryIds,
+    String? primaryCategoryId,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      handle: handle ?? this.handle,
+      variants: variants ?? this.variants,
+      images: images ?? this.images,
+      tags: tags ?? this.tags,
+      productType: productType ?? this.productType,
+      vendor: vendor ?? this.vendor,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      available: available ?? this.available,
+      categoryIds: categoryIds ?? this.categoryIds,
+      primaryCategoryId: primaryCategoryId ?? this.primaryCategoryId,
+    );
+  }
+
 }
 
 class ProductVariant {
